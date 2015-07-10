@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html lang="ru-RU" manifest="offline.manifest">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <title>Conway's Game of Life</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" type="text/css" href="style/default.css">
+    <link rel="stylesheet" type="text/css" href="style/main.css">
+</head>
+<body>
+    <div class="container" id="container_map">
+        <div id="map_target"></div>
+    </div>
+    <div class="container" id="container_control">
+        <form id="form_control" onsubmit="return false">
+            <p>Исходное состояние системы:</p>
+            <select name="algo">
+                <option value="random" data-arg="5">5% живых</option>
+                <option value="random" data-arg="20">20% живых</option>
+                <option value="random" data-arg="50">50% живых</option>
+                <option value="random" data-arg="80">80% живых</option>
+                <option value="random" data-arg="95">95% живых</option>
+            </select>
+            <p>Период шага эволюции (мс):</p>
+            <select name="period">
+                <option value="50">50 мс</option>
+                <option value="200">200 мс</option>
+                <option value="500">500 мс</option>
+                <option value="1000">1000 мс</option>
+                <option value="5000">5000 мс</option>
+            </select>
+            <button name="start">Старт</button>
+            <button name="stop" disabled>Стоп</button>
+        </form>
+        <form id="form_status">
+            <p>Количество шагов: <span name="steps">0</span></p>
+            <p>Популяция: <span name="population">0.0</span>% [<span name="pop_min">0.0</span>%, <span name="pop_max">0.0</span>%]</p>
+        </form>
+    </div>
+    <!-- Javascript Libs -->
+    <script type="text/javascript" src="lib/jquery-min.js"></script>
+    <!-- Javascript Code -->
+    <script type="text/javascript" src="prog/main.js"></script>
+</body>
+</html>

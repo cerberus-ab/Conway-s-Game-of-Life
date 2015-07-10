@@ -1,0 +1,86 @@
+body {
+    background: rgba(255,255,255,1) url(../img/bg.png) repeat top left;
+}
+
+.container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+#container_map {
+    right: 300px;
+    left: 0;
+    padding: 10px;
+}
+#container_control {
+    width: 300px;
+    right: 0;
+    left: auto;
+    padding: 20px 20px 20px 0;
+}
+#container_control form {
+    padding-bottom: 20px;
+}
+#container_control select {
+    width: 100%;
+     -webkit-appearance:none;
+    height: 28px;
+    background: white;
+    padding-left: 6px;
+    font-size: 14px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+#container_control select:disabled {
+    background: white;
+    color: rgba(192,192,192,1);
+}
+#container_control button {
+    width: 120px;
+    height: 28px;
+    background: rgba(192,192,192,1);
+    -webkit-appearance:none;
+    font-size: 14px;
+    margin-top: 12px;
+    margin-bottom: 2px;
+}
+#container_control button:disabled {
+    background: white;
+    color: rgba(192,192,192,1);
+}
+#container_control p {
+    font-size: 16px;
+    line-height: 30px;
+}
+#container_control span[name="pop_min"] {
+    color: rgba(178, 34, 34, 1);
+}
+#container_control span[name="pop_max"] {
+    color: rgba(34, 178, 34, 1);
+}
+
+#map_target {
+    height: 100%;
+    overflow: auto;
+    overflow-x: auto;
+}
+.gmap_container {
+
+}
+.gmap_container table {
+    width: auto;
+    border-spacing: 1px;
+    background: white;
+    border: 2px solid rgba(105,105,105,1);
+}
+.gmap_container td {
+    width: 20px;
+    height: 20px;
+    background: rgba(63,63,63,1);
+}
+.gmap_container td:hover {
+
+}
+.gmap_container td.isAlive {
+    background: rgba(50,205,50,1);
+}
