@@ -16,15 +16,15 @@ var Gmap = (function(settings) {
     // статические настройки класса
     settings = $.extend(true, {
         /** @type {integer} максимальная высота поля */
-        max_height: 50,
+        max_height: 200,
         /** @type {integer} максимальная ширина поля */
-        max_width: 50,
+        max_width: 200,
         /** @type {String} класс целевого контейнера */
         cclass_target: "gmap_container",
         /** @type {String} класс живой клетки */
         cclass_isalive: "isAlive",
         /** @type {integer} размер узла в пикселях */
-        node_size: 21,
+        node_size: 17,
         /**
          * Функция определения следующего статуса
          * @function
@@ -50,7 +50,17 @@ var Gmap = (function(settings) {
             /** @type {integer} текущая высота поля */
             height: "auto",
             /** @type {integer} текущая ширина поля */
-            width: "auto"
+            width: "auto",
+            /**
+             * Функция при изменении статуса узла при клике
+             * @function
+             * @param  {Object} node узел
+             * @param  {integer} index индекс узла
+             * @param  {integer} status новый статус узла
+             */
+            cb_revNodeStatus: function(node, index, status) {
+                // do something
+            }
         }, options);
 
         /** @type {jQuery} набор узлов в представлении */
@@ -79,6 +89,16 @@ var Gmap = (function(settings) {
             node.next = status;
             applyNodeStatus(node);
             return node.cur;
+        }
+
+        /**
+         * Реверсия состояния узла
+         * @param  {Object} node узел из набора
+         * @return {integer} новый статус узла
+         */
+        function revNodeStatus(node) {
+            var status = node.cur ? 0 : 1;
+            return setNodeStatus(node, status);
         }
 
         /**
@@ -145,6 +165,19 @@ var Gmap = (function(settings) {
                 }
             });
         }
+
+        // Обработчики =========================================================
+        $target.delegate("td", "click", function(event) {
+            // поиск узла в наборе
+            var index = $map.index($(this)),
+                node = map[index];
+            // новый статус узла
+            var status = revNodeStatus(node);
+            // вызов колбека
+            if (typeof options.cb_revNodeStatus === "function") {
+                options.cb_revNodeStatus(node, index, status);
+            }
+        });
 
         // Публичные методы ====================================================
         return {
@@ -233,6 +266,14 @@ var Game = (function(settings) {
         /** @type {Object} используемые алгоритмы формирования исходного состояния */
         algos: {
             /**
+             * Задается значение состояния клетки
+             */
+            constant: function(value) {
+                return function(currentNode, index) {
+                    return value;
+                }
+            },
+            /**
              * Задается вероятность живой клетки
              * @param  {integer} percent вероятность в процентах
              */
@@ -254,7 +295,7 @@ var Game = (function(settings) {
     }, settings);
 
     // вернуть конструктор
-    return function(gmap, options) {
+    return function($target, options) {
         // настройки по умолчанию
         options = $.extend(true, {
             /**
@@ -266,6 +307,20 @@ var Game = (function(settings) {
                 // do something
             }
         }, options);
+
+        /** @type {Gmap} экземпляр игрового поля */
+        var gmap = Gmap($target, {
+            cb_revNodeStatus: function(node, index, status) {
+                // счетчик живых узлов
+                if (status) state.lived_cur++;
+                else state.lived_cur--;
+                getExtremes();
+                // вызов колбека для обновления информации
+                if (typeof options.cb_useStatus === "function") {
+                    options.cb_useStatus(getStatus());
+                }
+            }
+        });
 
         /** @type {Object} реквизиты игры */
         var state = {
@@ -294,6 +349,13 @@ var Game = (function(settings) {
         };
 
         // Приватные методы ====================================================
+        /**
+         * Обновить информацию об экстремумах
+         */
+        function getExtremes() {
+            if (state.lived_cur > state.lived_max) state.lived_max = state.lived_cur;
+            else if (state.lived_cur < state.lived_min) state.lived_min = state.lived_cur;
+        }
 
         /**
          * Закрытие игры и обнуление реквизитов
@@ -365,7 +427,6 @@ var Game = (function(settings) {
                     // реквизиты игры
                     var gmap_status = gmap.fn.getStatus();
                     state.algo = algo;
-                    state.begin = gmap.fn.getLivedNodes();
                     state.capacity = gmap_status.capacity;
                     state.lived_cur = state.lived_min = state.lived_max = gmap_status.lived;
                     // колбек обработки статуса
@@ -378,6 +439,7 @@ var Game = (function(settings) {
                  * @param  {integer} period период шага (мс)
                  */
                 startGame: function(period) {
+                    state.begin = gmap.fn.getLivedNodes();
                     state.period = period;
                     state.timer = setInterval(function() {
                         state.steps_count++;
@@ -385,8 +447,7 @@ var Game = (function(settings) {
                         // следующий шаг
                         gmap.fn.nextStep();
                         state.lived_cur = gmap.fn.getStatus().lived;
-                        if (state.lived_cur > state.lived_max) state.lived_max = state.lived_cur;
-                        else if (state.lived_cur < state.lived_min) state.lived_min = state.lived_cur;
+                        getExtremes();
                         // колбек обработки статуса
                         if (typeof options.cb_useStatus === "function") {
                             options.cb_useStatus(getStatus());
@@ -446,7 +507,7 @@ $(document).ready(function() {
     };
 
     /** @type {Game} экземпляр игры */
-    var G = Game(Gmap(Int.$target), {
+    var G = Game(Int.$target, {
         cb_useStatus: function(status) {
             Int.$span_steps.text(status.steps_count);
             Int.$span_cur.text(Int.fn.toPercent(status.lived_cur / status.capacity));
@@ -465,7 +526,8 @@ $(document).ready(function() {
             name: value,
             arg: (function(name) {
                 switch (name) {
-                    case "random": return $selected.attr("data-arg");
+                    case "random": return $selected.attr("data-arg") -0;
+                    case "constant": return $selected.attr("data-arg") -0;
                     default: return undefined;
                 }
             })(value)
@@ -497,6 +559,5 @@ $(document).ready(function() {
         // остановка игры
         G.fn.stopGame();
     });
-
 
 });

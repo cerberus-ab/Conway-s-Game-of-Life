@@ -14,28 +14,29 @@
     </div>
     <div class="container" id="container_control">
         <form id="form_control" onsubmit="return false">
-            <p>Исходное состояние системы:</p>
+            <p>Initial state:</p>
             <select name="algo">
-                <option value="random" data-arg="5">5% живых</option>
-                <option value="random" data-arg="20">20% живых</option>
-                <option value="random" data-arg="50">50% живых</option>
-                <option value="random" data-arg="80">80% живых</option>
-                <option value="random" data-arg="95">95% живых</option>
+                <option value="constant" data-arg="0">Empty</option>
+                <option value="random" data-arg="5">5% Population</option>
+                <option value="random" data-arg="20">20% Population</option>
+                <option value="random" data-arg="50">50% Population</option>
+                <option value="random" data-arg="80">80% Population</option>
+                <option value="random" data-arg="95">95% Population</option>
             </select>
-            <p>Период шага эволюции (мс):</p>
+            <p>Evolution speed:</p>
             <select name="period">
-                <option value="50">50 мс</option>
-                <option value="200">200 мс</option>
-                <option value="500">500 мс</option>
-                <option value="1000">1000 мс</option>
-                <option value="5000">5000 мс</option>
+                <option value="5000">Very slow</option>
+                <option value="1500">Slow</option>
+                <option value="400" selected>Middle</option>
+                <option value="100">Fast</option>
+                <option value="20">Very fast</option>
             </select>
-            <button name="start">Старт</button>
-            <button name="stop" disabled>Стоп</button>
+            <button name="start">Start</button>
+            <button name="stop" disabled>Stop</button>
         </form>
         <form id="form_status">
-            <p>Количество шагов: <span name="steps">0</span></p>
-            <p>Популяция: <span name="population">0.0</span>% [<span name="pop_min">0.0</span>%, <span name="pop_max">0.0</span>%]</p>
+            <p>Iteration: <span name="steps">0</span></p>
+            <p>Population: <span name="population">0.0</span>% [<span name="pop_min">0.0</span>%, <span name="pop_max">0.0</span>%]</p>
         </form>
     </div>
     <!-- Javascript Libs -->

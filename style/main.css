@@ -74,8 +74,8 @@ body {
     border: 2px solid rgba(105,105,105,1);
 }
 .gmap_container td {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     background: rgba(63,63,63,1);
 }
 .gmap_container td:hover {
