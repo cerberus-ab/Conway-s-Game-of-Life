@@ -182,9 +182,7 @@ var Gmap = (function(settings) {
                 // новый статус узла
                 var status = revNodeStatus(node);
                 // вызов колбека
-                if (typeof options.cb_revNodeStatus === "function") {
-                    options.cb_revNodeStatus(node, index, status);
-                }
+                options.cb_revNodeStatus(node, index, status);
             }
         });
 
@@ -249,13 +247,14 @@ var Gmap = (function(settings) {
                 },
                 /**
                  * Получить набор живых клеток
+                 * @param  {Boolean} isrel относительные координаты (Default: false)
                  * @return {array} массив индексов живых клеток
                  */
-                getLivedNodes: function() {
+                getLivedNodes: function(isrel) {
                     var lived = [];
                     map.forEach(function(currentNode, index) {
                         if (currentNode.cur) {
-                            lived.push(index);
+                            lived.push(!isrel ? index : [index % options.width, Math.floor(index / options.width)]);
                         }
                     });
                     return lived;
@@ -487,7 +486,17 @@ var Game = (function(settings) {
                  * Получить статус игры
                  * @private
                  */
-                getStatus: getStatus
+                getStatus: getStatus,
+                /**
+                 * Сохранить игру (текущую карту)
+                 * @return {Object} параметры игры
+                 */
+                saveGame: function() {
+                    return {
+                        algo_name: "selection",
+                        set: JSON.stringify(gmap.fn.getLivedNodes(true))
+                    }
+                }
             }
         }
     }
@@ -508,6 +517,8 @@ $(document).ready(function() {
         $control_start: $("#form_control button[name='start']"),
         /** @type {jQuery} кнопка остановки игры */
         $control_stop: $("#form_control button[name='stop']"),
+        /** @type {jQuery} кнопка сохранения игры */
+        $control_save: $("#form_control button[name='save']"),
         /** @type {jQuery} вывод количества шагов */
         $span_steps: $("#form_status span[name='steps']"),
         /** @type {jQuery} вывод текущей популяции */
@@ -525,6 +536,17 @@ $(document).ready(function() {
              */
             toPercent: function(value) {
                 return (value * 100).toFixed(1);
+            },
+            /**
+             * Открыть/закрыть доступ к редактированию параметров и управлению
+             * @param  {Boolean} isenable true/false
+             */
+            enableForm: function(isenable) {
+                Int.$control_algo.prop("disabled", !isenable);
+                Int.$control_period.prop("disabled", !isenable);
+                Int.$control_start.prop("disabled", !isenable);
+                Int.$control_stop.prop("disabled", isenable);
+                Int.$control_save.prop("disabled", !isenable);
             }
         }
     };
@@ -567,24 +589,30 @@ $(document).ready(function() {
 
     // Нажата кнопка запуска игры
     Int.$control_start.click(function(event) {
-        // закрыть редактирование параметров
-        Int.$control_algo.prop("disabled", true);
-        Int.$control_period.prop("disabled", true);
-        Int.$control_start.prop("disabled", true);
-        Int.$control_stop.prop("disabled", false);
-        // запуск игры
+        Int.fn.enableForm(false);
         G.fn.startGame(Int.$control_period.val());
     });
 
     // Нажата кнопка остановки игры
     Int.$control_stop.click(function(event) {
-        // открыть редактирование параметров
-        Int.$control_algo.prop("disabled", false);
-        Int.$control_period.prop("disabled", false);
-        Int.$control_start.prop("disabled", false);
-        Int.$control_stop.prop("disabled", true);
-        // остановка игры
+        Int.fn.enableForm(true);
         G.fn.stopGame();
+    });
+
+    // Сохранение игры
+    Int.$control_save.click(function(event) {
+        var gsave = G.fn.saveGame();
+        if (gsave.name = prompt("Save current system?", "Unnamed system")) {
+            var $option = Int.$control_algo.find("option:contains('" + gsave.name + "')");
+            if ($option.length) {
+                if (confirm("System already exists. Replace it?")) {
+                    $option.val(gsave.algo_name).attr("data-arg", gsave.set).toggleClass("local", true);
+                }
+            }
+            else {
+                Int.$control_algo.append("<option class='local' value='" + gsave.algo_name + "' data-arg='" + gsave.set + "'>" + gsave.name + "</option>");
+            }
+        }
     });
 
 });
