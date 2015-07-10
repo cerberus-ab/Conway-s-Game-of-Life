@@ -52,6 +52,13 @@ var Gmap = (function(settings) {
             /** @type {integer} текущая ширина поля */
             width: "auto",
             /**
+             * Проверка возможности реверса состояния узла
+             * @function
+             */
+            cb_canRevNodeStatus: function() {
+                return true;
+            },
+            /**
              * Функция при изменении статуса узла при клике
              * @function
              * @param  {Object} node узел
@@ -168,14 +175,16 @@ var Gmap = (function(settings) {
 
         // Обработчики =========================================================
         $target.delegate("td", "click", function(event) {
-            // поиск узла в наборе
-            var index = $map.index($(this)),
-                node = map[index];
-            // новый статус узла
-            var status = revNodeStatus(node);
-            // вызов колбека
-            if (typeof options.cb_revNodeStatus === "function") {
-                options.cb_revNodeStatus(node, index, status);
+            if (options.cb_canRevNodeStatus()) {
+                // поиск узла в наборе
+                var index = $map.index($(this)),
+                    node = map[index];
+                // новый статус узла
+                var status = revNodeStatus(node);
+                // вызов колбека
+                if (typeof options.cb_revNodeStatus === "function") {
+                    options.cb_revNodeStatus(node, index, status);
+                }
             }
         });
 
@@ -250,6 +259,15 @@ var Gmap = (function(settings) {
                         }
                     });
                     return lived;
+                },
+                /**
+                 * Получить абсолютную координату по относительной (дек)
+                 * @param  {array} relco координата x,y
+                 * @return {arry} координата ax
+                 */
+                getAbsCo: function(xy) {
+                    var ax = xy[1] * options.width + xy[0];
+                    return ax < options.height * options.width ? ax : undefined;
                 }
             }
         }
@@ -267,6 +285,8 @@ var Game = (function(settings) {
         algos: {
             /**
              * Задается значение состояния клетки
+             * @this   {Gmap} используемая карта
+             * @param  {integer} value значение состояния
              */
             constant: function(value) {
                 return function(currentNode, index) {
@@ -275,6 +295,7 @@ var Game = (function(settings) {
             },
             /**
              * Задается вероятность живой клетки
+             * @this   {Gmap} используемая карта
              * @param  {integer} percent вероятность в процентах
              */
             random: function(percent) {
@@ -284,11 +305,16 @@ var Game = (function(settings) {
             },
             /**
              * Задается набор живых узлов
-             * @param  {array} set массив индексов
+             * @this   {Gmap} используемая карта
+             * @param  {array} set массив индексов [x,y]
              */
             selection: function(set) {
+                var gmap = this;
+                set = set.map(function(currentCo) {
+                    return gmap.fn.getAbsCo(currentCo);
+                });
                 return function(currentNode, index) {
-                    return set.indexOf(index) != -1 ? 1 : 0;
+                    return set.indexOf(index) < 0 ? 0 : 1;
                 }
             }
         }
@@ -310,15 +336,16 @@ var Game = (function(settings) {
 
         /** @type {Gmap} экземпляр игрового поля */
         var gmap = Gmap($target, {
+            cb_canRevNodeStatus: function() {
+                return !state.isrun;
+            },
             cb_revNodeStatus: function(node, index, status) {
                 // счетчик живых узлов
                 if (status) state.lived_cur++;
                 else state.lived_cur--;
                 getExtremes();
                 // вызов колбека для обновления информации
-                if (typeof options.cb_useStatus === "function") {
-                    options.cb_useStatus(getStatus());
-                }
+                options.cb_useStatus(getStatus());
             }
         });
 
@@ -423,16 +450,14 @@ var Game = (function(settings) {
                         throw "Undefined algorithm for the initial state";
                     }
                     // создание игрового поля
-                    gmap.fn.createMap(settings.algos[algo.name](algo.arg));
+                    gmap.fn.createMap(settings.algos[algo.name].call(gmap, algo.arg));
                     // реквизиты игры
                     var gmap_status = gmap.fn.getStatus();
                     state.algo = algo;
                     state.capacity = gmap_status.capacity;
                     state.lived_cur = state.lived_min = state.lived_max = gmap_status.lived;
                     // колбек обработки статуса
-                    if (typeof options.cb_useStatus === "function") {
-                        options.cb_useStatus(getStatus());
-                    }
+                    options.cb_useStatus(getStatus());
                 },
                 /**
                  * Запуск игры
@@ -449,9 +474,7 @@ var Game = (function(settings) {
                         state.lived_cur = gmap.fn.getStatus().lived;
                         getExtremes();
                         // колбек обработки статуса
-                        if (typeof options.cb_useStatus === "function") {
-                            options.cb_useStatus(getStatus());
-                        }
+                        options.cb_useStatus(getStatus());
                     }, state.period);
                     state.isrun = true;
                 },
@@ -526,9 +549,13 @@ $(document).ready(function() {
             name: value,
             arg: (function(name) {
                 switch (name) {
-                    case "random": return $selected.attr("data-arg") -0;
-                    case "constant": return $selected.attr("data-arg") -0;
-                    default: return undefined;
+                    case "random":
+                    case "constant":
+                        return $selected.attr("data-arg") -0;
+                    case "selection":
+                        return JSON.parse($selected.attr("data-arg"));
+                    default:
+                        return undefined;
                 }
             })(value)
         }
