@@ -50,7 +50,7 @@ body {
 }
 #container_control p {
     font-size: 16px;
-    line-height: 30px;
+    line-height: 28px;
 }
 #container_control span[name="pop_min"] {
     color: rgba(178, 34, 34, 1);
@@ -83,4 +83,15 @@ body {
 }
 .gmap_container td.isAlive {
     background: rgba(50,205,50,1);
+}
+#form_links {
+    padding-top: 20px;
+}
+#form_links p {
+    font-style: italic;
+}
+#form_links a {
+    display: block;
+    line-height: 22px;
+    font-size: 14px;
 }

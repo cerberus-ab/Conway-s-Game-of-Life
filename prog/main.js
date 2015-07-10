@@ -187,8 +187,7 @@ var Gmap = (function(settings) {
         });
 
         // Публичные методы ====================================================
-        return {
-            fn: {
+        this.fn = {
                 /**
                  * Получить атрибуты системы
                  * @return {Object} набор атрибутов
@@ -268,7 +267,6 @@ var Gmap = (function(settings) {
                     var ax = xy[1] * options.width + xy[0];
                     return ax < options.height * options.width ? ax : undefined;
                 }
-            }
         }
     }
 })();
@@ -323,6 +321,10 @@ var Game = (function(settings) {
     return function($target, options) {
         // настройки по умолчанию
         options = $.extend(true, {
+            /** @type {integer|auto} ширина игрового поля */
+            width: "auto",
+            /** @type {integer|auto} высота игрового поля */
+            height: "auto",
             /**
              * Функция обработки результатов на итерации
              * @function
@@ -334,7 +336,9 @@ var Game = (function(settings) {
         }, options);
 
         /** @type {Gmap} экземпляр игрового поля */
-        var gmap = Gmap($target, {
+        var gmap = new Gmap($target, {
+            width: options.width,
+            height: options.height,
             cb_canRevNodeStatus: function() {
                 return !state.isrun;
             },
@@ -430,8 +434,7 @@ var Game = (function(settings) {
         }
 
         // Публичные методы ====================================================
-        return {
-            fn: {
+        this.fn = {
                 /**
                  * Закрыть игру
                  * @private
@@ -497,12 +500,11 @@ var Game = (function(settings) {
                         set: JSON.stringify(gmap.fn.getLivedNodes(true))
                     }
                 }
-            }
         }
     }
 })();
 
-
+// После формирования разметки документа =======================================
 $(document).ready(function() {
 
     /** @type {Object} используемые элементы интерфейса */
@@ -552,7 +554,7 @@ $(document).ready(function() {
     };
 
     /** @type {Game} экземпляр игры */
-    var G = Game(Int.$target, {
+    var G = new Game(Int.$target, {
         cb_useStatus: function(status) {
             Int.$span_steps.text(status.steps_count);
             Int.$span_cur.text(Int.fn.toPercent(status.lived_cur / status.capacity));
@@ -599,7 +601,7 @@ $(document).ready(function() {
         G.fn.stopGame();
     });
 
-    // Сохранение игры
+    // Нажата кнопка сохранение игры
     Int.$control_save.click(function(event) {
         var gsave = G.fn.saveGame();
         if (gsave.name = prompt("Save current system?", "Unnamed system")) {
