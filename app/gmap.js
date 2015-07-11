@@ -14,6 +14,8 @@ define("app/gmap", ["jquery"], function($) {
         cclass_target: "gmap_container",
         /** @type {String} класс живой клетки */
         cclass_isalive: "isAlive",
+        /** @type {String} класс подозрительной клетки */
+        cclass_isactive: "isActive",
         /** @type {integer} размер узла в пикселях */
         node_size: 17,
         /**
@@ -68,6 +70,18 @@ define("app/gmap", ["jquery"], function($) {
         /** @type {Array} набор подозрительных клеток */
         var active = [];
 
+        /** @type {Object} статус игрового поля */
+        var state = {
+            /** @type {integer} количество живых клеток */
+            count_alive: 0,
+            /** @type {integer} количество активных клеток */
+            count_active: 0,
+            /** @type {integer} изменилось клеток (по предыдущему шагу) */
+            count_changed: 0,
+            /** @type {integer} общее количество клеток */
+            capacity: 0
+        };
+
         // Приватные методы ================================================
         /**
          * Применить статус к представлению
@@ -102,16 +116,6 @@ define("app/gmap", ["jquery"], function($) {
         }
 
         /**
-         * Получить количество живых клеток
-         * @return {integer} количество живых клеток
-         */
-        function getAliveCount() {
-            return map.filter(function(currentNode) {
-                return currentNode.cur;
-            }).length;
-        }
-
-        /**
          * Получить набор подозрительных клеток
          * @return {integer} количество активных клеток
          */
@@ -131,12 +135,27 @@ define("app/gmap", ["jquery"], function($) {
             // фомрирование набора подозрительных клеток
             active = [];
             map.forEach(function(currentNode) {
+                currentNode.$el.toggleClass(settings.cclass_isactive, currentNode.active);
                 if (currentNode.active) {
                     active.push(currentNode);
                 }
             });
             // вернуть количество
             return active.length;
+        }
+
+        /**
+         * Обновить информацию о состоянии системы
+         * @return {Object} текущее состояние системы
+         */
+        function updateState() {
+            state.count_alive = map.filter(function(currentNode) {
+                return currentNode.cur;
+            }).length;
+            state.count_active = map.filter(function(currentNode) {
+                return currentNode.active;
+            }).length;;
+            return state;
         }
 
         // Инициализация ===================================================
@@ -151,6 +170,8 @@ define("app/gmap", ["jquery"], function($) {
         if (options.height > settings.max_height || options.width > settings.max_width) {
             throw "Map size can't be more than max size";
         }
+        // сохранить общее количество в объект состояния
+        state.capacity = options.width * options.height;
 
         // обработка контейнера
         $target.empty().toggleClass(settings.cclass_target, true);
@@ -205,7 +226,7 @@ define("app/gmap", ["jquery"], function($) {
                 var status = revNodeStatus(node);
                 getActiveNodes();
                 // вызов колбека
-                options.cb_revNodeStatus(node, index, status);
+                options.cb_revNodeStatus(node, index, status, updateState());
             }
         });
 
@@ -223,13 +244,10 @@ define("app/gmap", ["jquery"], function($) {
             },
             /**
              * Получить текущее состояние системы
-             * @return {Object} состояние
+             * @return {Object} состояние системы
              */
             getStatus: function() {
-                return {
-                    lived: getAliveCount(),
-                    capacity: options.height * options.width
-                }
+                return state;
             },
             /**
              * Очистить карту
@@ -242,19 +260,19 @@ define("app/gmap", ["jquery"], function($) {
             /**
              * Создание карты по заданному алгоритму (исходное состояние)
              * @param  {Object} algo используемый алгоритм
-             * @return {integer} количество живых клеток
+             * @return {Object} состояние карты
              */
             createMap: function(algo) {
                 map.forEach(function(currentNode, index) {
                     setNodeStatus(currentNode, algo(currentNode, index));
                 });
                 getActiveNodes();
-                // вернуть количество живых
-                return getAliveCount();
+                // вернуть состояние
+                return updateState();
             },
             /**
              * Следующий шаг эволюции
-             * @return {integer} количество затронутых клеток
+             * @return {Object} состояние карты
              */
             nextStep: function() {
                 var changed = 0;
@@ -273,8 +291,9 @@ define("app/gmap", ["jquery"], function($) {
                 });
                 // сохранить массив подозрительных клеток
                 getActiveNodes();
-                // вернуть количество затронутых
-                return changed;
+                // вернуть состояние
+                state.count_changed = changed;
+                return updateState();
             },
             /**
              * Получить набор живых клеток

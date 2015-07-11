@@ -22,6 +22,8 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
             $control_save: $("#form_control button[name='save']"),
             /** @type {jQuery} вывод количества шагов */
             $span_steps: $("#form_status span[name='steps']"),
+            /** @type {jQuery} вывод значения активных клеток */
+            $span_active: $("#form_status span[name='active']"),
             /** @type {jQuery} вывод текущей популяции */
             $span_cur: $("#form_status span[name='population']"),
             /** @type {jQuery} вывод минимальной популяции */
@@ -56,6 +58,7 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
         var G = new Game(Int.$target, {
             cb_useStatus: function(status) {
                 Int.$span_steps.text(status.steps_count);
+                Int.$span_active.text(Int.fn.toPercent(status.active / status.capacity));
                 Int.$span_cur.text(Int.fn.toPercent(status.lived_cur / status.capacity));
                 Int.$span_min.text(Int.fn.toPercent(status.lived_min / status.capacity));
                 Int.$span_max.text(Int.fn.toPercent(status.lived_max / status.capacity));

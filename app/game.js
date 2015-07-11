@@ -70,11 +70,12 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
             cb_canRevNodeStatus: function() {
                 return !state.isrun;
             },
-            cb_revNodeStatus: function(node, index, status) {
+            cb_revNodeStatus: function(node, index, status, gmap_status) {
                 // счетчик живых узлов
                 if (status) state.lived_cur++;
                 else state.lived_cur--;
                 getExtremes();
+                state.active = gmap_status.active;
                 // вызов колбека для обновления информации
                 options.cb_useStatus(getStatus());
             }
@@ -90,6 +91,8 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
             isrun: false,
             /** @type {integer} емкость игрового поля */
             capacity: 0,
+            /** @type {integer} количество активных клеток */
+            active: 0,
             /** @type {integer} минимальное число живых клеток */
             lived_min: 0,
             /** @type {integer} максимальное число живых клеток */
@@ -151,6 +154,7 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
          */
         function getStatus() {
             return {
+                active: state.active,
                 capacity: state.capacity,
                 lived_min: state.lived_min,
                 lived_max: state.lived_max,
@@ -180,12 +184,12 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
                     throw "Undefined algorithm for the initial state";
                 }
                 // создание игрового поля
-                gmap.fn.createMap(settings.algos[algo.name].call(gmap, algo.arg));
+                var gmap_state = gmap.fn.createMap(settings.algos[algo.name].call(gmap, algo.arg));
                 // реквизиты игры
-                var gmap_status = gmap.fn.getStatus();
                 state.algo = algo;
-                state.capacity = gmap_status.capacity;
-                state.lived_cur = state.lived_min = state.lived_max = gmap_status.lived;
+                state.capacity = gmap_state.capacity;
+                state.lived_cur = state.lived_min = state.lived_max = gmap_state.count_alive;
+                state.active = gmap_state.count_active;
                 // колбек обработки статуса
                 options.cb_useStatus(getStatus());
             },
@@ -200,8 +204,9 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
                     state.steps_count++;
                     state.time_passed += state.period;
                     // следующий шаг
-                    gmap.fn.nextStep();
-                    state.lived_cur = gmap.fn.getStatus().lived;
+                    var gmap_state = gmap.fn.nextStep();
+                    state.lived_cur = gmap_state.count_alive;
+                    state.active = gmap_state.count_active;
                     getExtremes();
                     // колбек обработки статуса
                     options.cb_useStatus(getStatus());
