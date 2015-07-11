@@ -113,14 +113,30 @@ define("app/gmap", ["jquery"], function($) {
 
         /**
          * Получить набор подозрительных клеток
-         * @return {array} набор
+         * @return {integer} количество активных клеток
          */
         function getActiveNodes() {
-            var act = [];
+            // отменить подозрительность для всех клеток
             map.forEach(function(currentNode) {
-                if (currentNode.active) act.push(currentNode);
+                currentNode.active = false;
             });
-            return act;
+            // подозрительны живые клетки и их соседи
+            map.forEach(function(currentNode) {
+                if (currentNode.cur) {
+                    currentNode.nbs.concat(currentNode).forEach(function(currentActiveNode) {
+                        currentActiveNode.active = true;
+                    });
+                }
+            });
+            // фомрирование набора подозрительных клеток
+            active = [];
+            map.forEach(function(currentNode) {
+                if (currentNode.active) {
+                    active.push(currentNode);
+                }
+            });
+            // вернуть количество
+            return active.length;
         }
 
         // Инициализация ===================================================
@@ -187,6 +203,7 @@ define("app/gmap", ["jquery"], function($) {
                     node = map[index];
                 // новый статус узла
                 var status = revNodeStatus(node);
+                getActiveNodes();
                 // вызов колбека
                 options.cb_revNodeStatus(node, index, status);
             }
@@ -230,10 +247,8 @@ define("app/gmap", ["jquery"], function($) {
             createMap: function(algo) {
                 map.forEach(function(currentNode, index) {
                     setNodeStatus(currentNode, algo(currentNode, index));
-                    currentNode.active = true;
                 });
-                // по умолчанию подозрительны все узлы
-                active = getActiveNodes();
+                getActiveNodes();
                 // вернуть количество живых
                 return getAliveCount();
             },
@@ -243,10 +258,6 @@ define("app/gmap", ["jquery"], function($) {
              */
             nextStep: function() {
                 var changed = 0;
-                // отменить подозрительность
-                map.forEach(function(currentNode) {
-                    currentNode.active = false;
-                });
                 // определение нового статуса
                 active.forEach(function(currentNode) {
                     settings.cb_nextStatus(currentNode, currentNode.nbs);
@@ -258,14 +269,10 @@ define("app/gmap", ["jquery"], function($) {
                         // применить новый статус для текущей клетки
                         changed++;
                         setNodeStatus(currentNode, currentNode.next);
-                        // добавить эту клетку и ее соседей в список подозрительных на следующем шаге
-                        currentNode.nbs.concat(currentNode).forEach(function(currentActiveNode) {
-                            currentActiveNode.active = true;
-                        });
                     }
                 });
                 // сохранить массив подозрительных клеток
-                active = getActiveNodes();
+                getActiveNodes();
                 // вернуть количество затронутых
                 return changed;
             },
