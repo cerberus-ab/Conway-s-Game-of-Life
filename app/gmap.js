@@ -2,7 +2,7 @@
  * @module Класс игрового поля
  * @return {function} конструктор класса
  */
-define("app/gmap", ["jquery"], function($) {
+define("app/gmap", ["jquery", "app/gnode"], function($, GnodeFab) {
 
     // статические настройки класса
     var settings = {
@@ -12,29 +12,10 @@ define("app/gmap", ["jquery"], function($) {
         max_width: 200,
         /** @type {String} класс целевого контейнера */
         cclass_target: "gmap_container",
-        /** @type {String} класс живой клетки */
-        cclass_isalive: "isAlive",
-        /** @type {String} класс подозрительной клетки */
-        cclass_isactive: "isActive",
-        /** @type {integer} размер узла в пикселях */
-        node_size: 17,
-        /**
-         * Функция определения следующего статуса
-         * @function
-         * @param  {Object} node узел
-         * @param  {Array} neighbors набор соседей
-         * @return {integer} следующее состояние узла
-         */
-        cb_nextStatus: function(node, neighbors) {
-            var lived = neighbors.filter(function(currentNode) {
-                return currentNode.cur;
-            }).length;
-            node.next = node.cur
-                ? (lived == 2 || lived == 3 ? 1 : 0)
-                : (lived == 3 ? 1 : 0);
-            return node.next;
-        }
     };
+
+    /** @type {function} конструктор клеток */
+    var Gnode = GnodeFab();
 
     // вернуть конструктор
     return function($target, options) {
@@ -82,60 +63,24 @@ define("app/gmap", ["jquery"], function($) {
 
         // Приватные методы ================================================
         /**
-         * Применить статус к представлению
-         * @param  {Object} node узел из набора
-         */
-        function applyNodeStatus(node) {
-            node.$el.toggleClass(settings.cclass_isalive, !!node.cur);
-        }
-
-        /**
-         * Установить состояние узла
-         * @param  {Object} node узел из набора
-         * @param  {integer} status статус узла
-         * @return {integer} текущий статус узла
-         */
-        function setNodeStatus(node, status) {
-            status = status || 0;
-            node.cur = status;
-            node.next = status;
-            applyNodeStatus(node);
-            return node.cur;
-        }
-
-        /**
-         * Реверсия состояния узла
-         * @param  {Object} node узел из набора
-         * @return {integer} новый статус узла
-         */
-        function revNodeStatus(node) {
-            var status = node.cur ? 0 : 1;
-            return setNodeStatus(node, status);
-        }
-
-        /**
          * Получить набор подозрительных клеток
          * @return {integer} количество активных клеток
          */
         function getActiveNodes() {
             // отменить подозрительность для всех клеток
             map.forEach(function(currentNode) {
-                currentNode.active = false;
+                currentNode.setActiveStatus(false);
             });
             // подозрительны живые клетки и их соседи
+            active = [];
             map.forEach(function(currentNode) {
                 if (currentNode.cur) {
                     currentNode.nbs.concat(currentNode).forEach(function(currentActiveNode) {
-                        currentActiveNode.active = true;
+                        if (!currentActiveNode.active) {
+                            currentActiveNode.setActiveStatus(true);
+                            active.push(currentActiveNode);
+                        }
                     });
-                }
-            });
-            // фомрирование набора подозрительных клеток
-            active = [];
-            map.forEach(function(currentNode) {
-                currentNode.$el.toggleClass(settings.cclass_isactive, currentNode.active);
-                if (currentNode.active) {
-                    active.push(currentNode);
                 }
             });
             // вернуть количество
@@ -168,10 +113,10 @@ define("app/gmap", ["jquery"], function($) {
         // Инициализация =======================================================
         // автоматическое определение размеров
         if (options.height === "auto") {
-            options.height = Math.floor(($target.height() -5) / settings.node_size);
+            options.height = Math.floor(($target.height() -5) / Gnode.prototype.cfg.size);
         }
         if (options.width === "auto") {
-            options.width = Math.floor(($target.width() -5) / settings.node_size);
+            options.width = Math.floor(($target.width() -5) / Gnode.prototype.cfg.size);
         }
         // проверка граничных условий
         if (options.height > settings.max_height || options.width > settings.max_width) {
@@ -199,16 +144,10 @@ define("app/gmap", ["jquery"], function($) {
         // создание набора узлов
         var max = $map.length;
         for (i = 0; i != max; i++) {
-            map.push({
-                active: false,
-                $el: $map.eq(i),
-                cur: 0,
-                next: 0,
-                nbs: []
-            });
+            map.push(new Gnode($map.eq(i), 0));
         }
         for (i = 0; i != max; i++) {
-            [
+            map[i].setNeighbors([
                 map[i - options.width],
                 (i + 1) % options.width != 0 ? map[i - options.width + 1] : undefined,
                 (i + 1) % options.width != 0 ? map[i + 1] : undefined,
@@ -217,11 +156,7 @@ define("app/gmap", ["jquery"], function($) {
                 i % options.width != 0 ? map[i + options.width - 1] : undefined,
                 i % options.width != 0 ? map[i - 1] : undefined,
                 i % options.width != 0 ? map[i - options.width - 1] : undefined
-            ].forEach(function(currentNode) {
-                if (typeof currentNode !== "undefined") {
-                    map[i].nbs.push(currentNode);
-                }
-            });
+            ]);
         }
 
         // Обработчики =====================================================
@@ -231,10 +166,10 @@ define("app/gmap", ["jquery"], function($) {
             var curve = false;
             // Начало выбор: зажата кнопка мыши на игровом поле
             $target.on("mousedown", function(event) {
-                if (options.cb_canSelected()) {
+                if (event.which == 1 && options.cb_canSelected()) {
                     curve = true;
-                    if (event.target.tagName == "TD") {
-                        revNodeStatus(findNodeByView($(event.target)));
+                    if (event.target.tagName == Gnode.prototype.cfg.tagName) {
+                        findNodeByView($(event.target)).revAliveStatus();
                     }
                 }
             });
@@ -249,9 +184,9 @@ define("app/gmap", ["jquery"], function($) {
                 options.cb_acceptSelected(gmap_state);
             });
             // Реверс состояния целевой клетки
-            $target.delegate("TD", "mouseenter", function(event) {
+            $target.delegate(Gnode.prototype.cfg.tagName, "mouseenter", function(event) {
                 if (curve) {
-                    revNodeStatus(findNodeByView($(this)));
+                    findNodeByView($(this)).revAliveStatus();
                 }
             });
         })();
@@ -280,7 +215,7 @@ define("app/gmap", ["jquery"], function($) {
              */
             clearMap: function() {
                 map.forEach(function(currentNode, index) {
-                    setNodeStatus(currentNode);
+                    currentNode.setAliveStatus(0);
                 });
             },
             /**
@@ -290,7 +225,7 @@ define("app/gmap", ["jquery"], function($) {
              */
             createMap: function(algo) {
                 map.forEach(function(currentNode, index) {
-                    setNodeStatus(currentNode, algo(currentNode, index));
+                    currentNode.setAliveStatus(algo(currentNode, index));
                 });
                 getActiveNodes();
                 // вернуть состояние
@@ -304,7 +239,7 @@ define("app/gmap", ["jquery"], function($) {
                 var changed = 0;
                 // определение нового статуса
                 active.forEach(function(currentNode) {
-                    settings.cb_nextStatus(currentNode, currentNode.nbs);
+                    currentNode.nextAliveStatus();
                 });
                 // применить новый статус
                 active.forEach(function(currentNode) {
@@ -312,7 +247,7 @@ define("app/gmap", ["jquery"], function($) {
                     if (currentNode.next !== currentNode.cur) {
                         // применить новый статус для текущей клетки
                         changed++;
-                        setNodeStatus(currentNode, currentNode.next);
+                        currentNode.setAliveStatus(currentNode.next);
                     }
                 });
                 // сохранить массив подозрительных клеток
