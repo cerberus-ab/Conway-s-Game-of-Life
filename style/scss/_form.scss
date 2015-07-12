@@ -1,0 +1,31 @@
+$form_input_bg: white;
+$form_button_bg: white;
+$form_input_disabled_bg: white;
+$form_input_disabled_color: $font_color_disabled;
+
+@mixin formin($type) {
+    -webkit-appearance: none;
+    height: 28px;
+    font-size: 14px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    &:disabled {
+        background: $form_input_disabled_bg;
+        color: $form_input_disabled_color;
+    }
+    @if $type == "input" or $type == "select" {
+        padding-left: 4px;
+        width: 100%;
+        background: $form_input_bg;
+        @if $type == "select" {
+            padding-left: 6px;
+        }
+    }
+    @else if $type == "button" {
+        width: 90px;
+        background: $form_button_bg;
+        &:disabled {
+            border: none;
+        }
+    }
+}

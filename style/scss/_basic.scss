@@ -1,0 +1,25 @@
+@mixin box-sizing ($sizing) {
+    box-sizing: $sizing !important;
+      -moz-box-sizing: $sizing !important;
+      -webkit-box-sizing: $sizing !important;
+}
+@mixin background($url) {
+    background: rgba(255,255,255,1) url($url) repeat top left;
+}
+@mixin pos_absolute($padding) {
+    position: absolute;
+    top: $padding;
+    bottom: $padding;
+    left: $padding;
+    right: $padding;
+}
+@mixin fontsize($size) {
+    @if $size == "usual" {
+        font-size: 14px;
+        line-height: 22px;
+    }
+    @else if $size == "medium" {
+        font-size: 16px;
+        line-height: 28px;
+    }
+}

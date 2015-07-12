@@ -1,100 +1,163 @@
+/* line 1, scss/_default.scss */
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, em, font, img, ins, small, strong, sub, sup, b, u, i, center, ol, ul, li, fieldset, form, label, legend, table, tbody, th, td {
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+/* line 9, scss/_default.scss */
+html {
+  height: 100%;
+  width: 100%;
+}
+
+/* line 13, scss/_default.scss */
+div, input, select, textarea, ul {
+  display: block;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box !important;
+  -moz-box-sizing: border-box !important;
+  -webkit-box-sizing: border-box !important;
+}
+
+/* line 19, scss/_default.scss */
+table {
+  width: 100%;
+  border-spacing: 0;
+}
+
+/* line 23, scss/_default.scss */
 body {
-    background: rgba(255,255,255,1) url(../img/bg.png) repeat top left;
+  height: 100%;
+  width: 100%;
+  color: #3f3f3f;
+  font: 14px Arial, Helvetica, sans-serif;
 }
 
+/* line 11, scss/main.scss */
+body {
+  background: white url("../img/bg.png") repeat top left;
+}
+
+/* line 15, scss/main.scss */
 .container {
-    position: absolute;
-    top: 0;
-    bottom: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
+
+/* line 18, scss/main.scss */
 #container_map {
-    right: 300px;
-    left: 0;
-    padding: 10px;
+  right: 300px;
+  padding: 10px;
 }
+
+/* line 22, scss/main.scss */
 #container_control {
-    width: 300px;
-    right: 0;
-    left: auto;
-    padding: 20px 20px 20px 0;
+  width: 300px;
+  left: auto;
+  padding: 20px 20px 20px 0;
 }
+/* line 26, scss/main.scss */
 #container_control form {
-    padding-bottom: 30px;
+  padding-bottom: 30px;
 }
+/* line 29, scss/main.scss */
 #container_control select {
-    width: 100%;
-     -webkit-appearance:none;
-    height: 28px;
-    background: white;
-    padding-left: 6px;
-    font-size: 14px;
-    margin-top: 2px;
-    margin-bottom: 2px;
+  -webkit-appearance: none;
+  height: 28px;
+  font-size: 14px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding-left: 4px;
+  width: 100%;
+  background: white;
+  padding-left: 6px;
 }
+/* line 12, scss/_form.scss */
 #container_control select:disabled {
-    background: white;
-    color: rgba(192,192,192,1);
+  background: white;
+  color: silver;
 }
+/* line 32, scss/main.scss */
 #container_control button {
-    width: 90px;
-    height: 28px;
-    background: rgba(192,192,192,1);
-    -webkit-appearance:none;
-    font-size: 14px;
-    margin-top: 12px;
-    margin-bottom: 2px;
+  -webkit-appearance: none;
+  height: 28px;
+  font-size: 14px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  width: 90px;
+  background: white;
+  margin-top: 12px;
 }
+/* line 12, scss/_form.scss */
 #container_control button:disabled {
-    background: white;
-    color: rgba(192,192,192,1);
+  background: white;
+  color: silver;
 }
+/* line 27, scss/_form.scss */
+#container_control button:disabled {
+  border: none;
+}
+/* line 36, scss/main.scss */
 #container_control p {
-    font-size: 16px;
-    line-height: 28px;
+  font-size: 16px;
+  line-height: 28px;
 }
+/* line 39, scss/main.scss */
 #container_control span[name="pop_min"] {
-    color: rgba(178, 34, 34, 1);
+  color: firebrick;
 }
+/* line 42, scss/main.scss */
 #container_control span[name="pop_max"] {
-    color: rgba(34, 178, 34, 1);
+  color: #22b222;
 }
 
+/* line 47, scss/main.scss */
 #map_target {
-    height: 100%;
-    overflow: auto;
-    overflow-x: auto;
+  height: 100%;
+  overflow: auto;
 }
-.gmap_container {
 
-}
+/* line 52, scss/main.scss */
 .gmap_container table {
-    width: auto;
-    border-spacing: 1px;
-    background: white;
-    border: 2px solid rgba(105,105,105,1);
+  width: auto;
+  border-spacing: 1px;
+  background: white;
+  border: 2px solid dimgrey;
 }
-.gmap_container td {
-    width: 16px;
-    height: 16px;
-    background: rgba(63,63,63,1);
+/* line 57, scss/main.scss */
+.gmap_container table td {
+  height: 16px;
+  width: 16px;
+  background: #3f3f3f;
 }
-.gmap_container td:hover {
+/* line 61, scss/main.scss */
+.gmap_container table td.isAlive {
+  background: limegreen;
+}
+/* line 64, scss/main.scss */
+.gmap_container table td.isActive:not(.isAlive) {
+  background: black;
+}
 
-}
-.gmap_container td.isAlive {
-    background: rgba(50,205,50,1);
-}
-.gmap_container td.isActive:not(.isAlive) {
-    background: black;
-}
+/* line 71, scss/main.scss */
 #form_links {
-    padding-top: 20px;
+  padding-top: 20px;
 }
+/* line 73, scss/main.scss */
 #form_links p {
-    font-style: italic;
+  font-style: italic;
 }
+/* line 76, scss/main.scss */
 #form_links a {
-    display: block;
-    line-height: 22px;
-    font-size: 14px;
+  font-size: 14px;
+  line-height: 22px;
+  display: block;
 }

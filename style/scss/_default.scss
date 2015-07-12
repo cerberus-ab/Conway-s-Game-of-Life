@@ -14,9 +14,7 @@ div, input, select, textarea, ul {
     display: block;
     margin: 0;
     padding: 0;
-    box-sizing: border-box !important;
-      -moz-box-sizing: border-box !important;
-      -webkit-box-sizing: border-box !important;
+    @include box-sizing(border-box);
 }
 table {
     width: 100%;
@@ -25,6 +23,6 @@ table {
 body {
     height: 100%;
     width: 100%;
-    color: #3F3F3F;
-    font: 14px Arial, Helvetica, sans-serif;
+    color: $font_color;
+    font: $font;
 }

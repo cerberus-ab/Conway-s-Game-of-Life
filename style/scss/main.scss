@@ -1,0 +1,80 @@
+@import "constants.scss";
+@import "basic.scss";
+@import "default.scss";
+@import "form.scss";
+
+$cell_size: 16px;
+$cell_color: rgba(63,63,63,1);
+$cell_alive_color: rgba(50,205,50,1);
+$cell_active_color: black;
+
+body {
+    @include background($path_img + $path_bg);
+}
+
+.container {
+    @include pos_absolute(0);
+}
+#container_map {
+    right: 300px;
+    padding: 10px;
+}
+#container_control {
+    width: 300px;
+    left: auto;
+    padding: 20px 20px 20px 0;
+    form {
+        padding-bottom: 30px;
+    }
+    select {
+        @include formin("select");
+    }
+    button {
+        @include formin("button");
+        margin-top: 12px;
+    }
+    p {
+        @include fontsize("medium");
+    }
+    span[name="pop_min"] {
+        color: $color_red;
+    }
+    span[name="pop_max"] {
+        color: $color_green;
+    }
+}
+
+#map_target {
+    height: 100%;
+    overflow: auto;
+}
+.gmap_container {
+    table {
+        width: auto;
+        border-spacing: 1px;
+        background: white;
+        border: #{2px solid $color_gray};
+        td {
+            height: $cell_size;
+            width: $cell_size;
+            background: $cell_color;
+            &.isAlive {
+                background: $cell_alive_color;
+            }
+            &.isActive:not(.isAlive) {
+                background: $cell_active_color;
+            }
+        }
+    }
+}
+
+#form_links {
+    padding-top: 20px;
+    p {
+        font-style: italic;
+    }
+    a {
+        @include fontsize("usual");
+        display: block;
+    }
+}

@@ -75,7 +75,7 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
                 if (status) state.lived_cur++;
                 else state.lived_cur--;
                 getExtremes();
-                state.active = gmap_status.active;
+                state.active = gmap_status.count_active;
                 // вызов колбека для обновления информации
                 options.cb_useStatus(getStatus());
             }

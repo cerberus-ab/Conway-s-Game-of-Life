@@ -50,6 +50,19 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
                     Int.$control_start.prop("disabled", !isenable);
                     Int.$control_stop.prop("disabled", isenable);
                     Int.$control_save.prop("disabled", !isenable);
+                },
+                /**
+                 * Формирование представления для алгоритма начального состояния
+                 * @param  {Object} data данные
+                 * @return {String} разметка нового алгоритма
+                 */
+                createAlgo: function(data, islocal) {
+                    return "<option "
+                        + (islocal ? "class='local' " : "")
+                        + "value='" + data.algo_name
+                        + "' data-arg='" + data.set
+                        + "'>" + data.name
+                    + "</option>"
                 }
             }
         };
@@ -114,7 +127,7 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
                     }
                 }
                 else {
-                    Int.$control_algo.append("<option class='local' value='" + gsave.algo_name + "' data-arg='" + gsave.set + "'>" + gsave.name + "</option>");
+                    Int.$control_algo.append(Int.fn.createAlgo(gsave));
                 }
             }
         });
