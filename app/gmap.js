@@ -45,20 +45,18 @@ define("app/gmap", ["jquery"], function($) {
             /** @type {integer} текущая ширина поля */
             width: "auto",
             /**
-             * Проверка возможности реверса состояния узла
+             * Проверка возможности выбора клеток
              * @function
              */
-            cb_canRevNodeStatus: function() {
+            cb_canSelected: function() {
                 return true;
             },
             /**
-             * Функция при изменении статуса узла при клике
+             * Функция при принятии выбора узлов
              * @function
-             * @param  {Object} node узел
-             * @param  {integer} index индекс узла
-             * @param  {integer} status новый статус узла
+             * @param  {Object} gmap_status состояние карты
              */
-            cb_revNodeStatus: function(node, index, status) {
+            cb_acceptSelected: function(gmap_status) {
                 // do something
             }
         }, options);
@@ -145,6 +143,15 @@ define("app/gmap", ["jquery"], function($) {
         }
 
         /**
+         * Получить клетку по представлению
+         * @param  {jQuery} $node представление
+         * @return {Object} клетка
+         */
+        function findNodeByView($node) {
+            return map[$map.index($node)];
+        }
+
+        /**
          * Обновить информацию о состоянии системы
          * @return {Object} текущее состояние системы
          */
@@ -217,18 +224,36 @@ define("app/gmap", ["jquery"], function($) {
         }
 
         // Обработчики =====================================================
-        $target.delegate("td", "click", function(event) {
-            if (options.cb_canRevNodeStatus()) {
-                // поиск узла в наборе
-                var index = $map.index($(this)),
-                    node = map[index];
-                // новый статус узла
-                var status = revNodeStatus(node);
+        // Выбор клеток игрового поля
+        ;(function() {
+            /** @type {Boolean} вкл/выкл выбор клеток */
+            var curve = false;
+            // Начало выбор: зажата кнопка мыши на игровом поле
+            $target.on("mousedown", function(event) {
+                if (options.cb_canSelected()) {
+                    curve = true;
+                    if (event.target.tagName == "TD") {
+                        revNodeStatus(findNodeByView($(event.target)));
+                    }
+                }
+            });
+            // Заверешение выбора: кнопка отжата или курсор покинул поле
+            $target.on("mouseup mouseleave", function(event) {
+                curve = false;
+                // обновить список активных клеток
                 getActiveNodes();
-                // вызов колбека
-                options.cb_revNodeStatus(node, index, status, updateState());
-            }
-        });
+                // обновить состояние системы
+                var gmap_state = updateState();
+                // вызов колбэка
+                options.cb_acceptSelected(gmap_state);
+            });
+            // Реверс состояния целевой клетки
+            $target.delegate("TD", "mouseenter", function(event) {
+                if (curve) {
+                    revNodeStatus(findNodeByView($(this)));
+                }
+            });
+        })();
 
         // Публичные методы ================================================
         this.fn = {

@@ -67,13 +67,12 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
         var gmap = new Gmap($target, {
             width: options.width,
             height: options.height,
-            cb_canRevNodeStatus: function() {
+            cb_canSelected: function() {
                 return !state.isrun;
             },
-            cb_revNodeStatus: function(node, index, status, gmap_status) {
+            cb_acceptSelected: function(gmap_status) {
                 // счетчик живых узлов
-                if (status) state.lived_cur++;
-                else state.lived_cur--;
+                state.lived_cur = gmap_status.count_alive;
                 getExtremes();
                 state.active = gmap_status.count_active;
                 // вызов колбека для обновления информации
