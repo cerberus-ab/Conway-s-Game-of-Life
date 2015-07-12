@@ -3,7 +3,8 @@ require.config({
     baseUrl: "lib",
     paths: {
         app: "../app",
-        jquery: "jquery-min"
+        jquery: "jquery-min",
+        config: "../app/config"
     }
 });
 

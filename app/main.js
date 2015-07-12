@@ -1,7 +1,7 @@
 /**
  * @module Главный модуль приложения
  */
-define("app/main", ["jquery", "app/game"], function($, Game) {
+define("app/main", ["jquery", "app/game", "config"], function($, Game, cfg) {
 
     // После формирования разметки документа
     $(document).ready(function() {
@@ -58,11 +58,24 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
                  */
                 createAlgo: function(data, islocal) {
                     return "<option "
+                        + (data.selected ? "selected " : "")
                         + (islocal ? "class='local' " : "")
-                        + "value='" + data.algo_name
-                        + "' data-arg='" + data.set
+                        + "value='" + data.algo
+                        + "' data-arg='" + (typeof data.arg !== "object" ? data.arg : JSON.stringify(data.arg))
                         + "'>" + data.name
-                    + "</option>"
+                    + "</option>";
+                },
+                /**
+                 * Формирование представления для режима скорости
+                 * @param  {Object} data данные
+                 * @return {String} разметка нового режима
+                 */
+                createSpeedMode: function(data) {
+                    return "<option "
+                        + (data.selected ? "selected " : "")
+                        + "value='" + data.period
+                        + "'>" + data.name
+                    + "</option>";
                 }
             }
         };
@@ -78,7 +91,17 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
             }
         });
 
-        // Выбор алгоритма и создание новой игры
+        // Формирование списка доступных начальных состояний
+        Int.$control_algo.append(cfg.istates.map(function(currentState) {
+            return Int.fn.createAlgo(currentState);
+        }).join(""));
+
+        // Формирование списка доступных режимов скорости
+        Int.$control_period.append(cfg.speed.map(function(currentSpeed) {
+            return Int.fn.createSpeedMode(currentSpeed);
+        }).join(""))
+
+        // Выбор исходного состояния и создание новой игры
         Int.$control_algo.change(function(event) {
             var $this = $(this),
                 $selected = $this.find(":selected"),
@@ -101,7 +124,7 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
             // создание новой игры
             G.fn.createGame(algo);
         });
-        // по умолчанию первый алгоритм
+        // первый выбор
         Int.$control_algo.change();
 
         // Нажата кнопка запуска игры
@@ -123,7 +146,7 @@ define("app/main", ["jquery", "app/game"], function($, Game) {
                 var $option = Int.$control_algo.find("option:contains('" + gsave.name + "')");
                 if ($option.length) {
                     if (confirm("System already exists. Replace it?")) {
-                        $option.val(gsave.algo_name).attr("data-arg", gsave.set).toggleClass("local", true);
+                        $option.val(gsave.algo).attr("data-arg", gsave.arg).toggleClass("local", true);
                     }
                 }
                 else {

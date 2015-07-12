@@ -229,8 +229,8 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
              */
             saveGame: function() {
                 return {
-                    algo_name: "selection",
-                    set: JSON.stringify(gmap.fn.getLivedNodes(true))
+                    algo: "selection",
+                    arg: JSON.stringify(gmap.fn.getLivedNodes(true))
                 }
             }
         }
