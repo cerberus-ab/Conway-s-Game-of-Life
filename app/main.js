@@ -20,6 +20,12 @@ define("app/main", ["jquery", "app/game", "config"], function($, Game, cfg) {
             $control_stop: $("#form_control button[name='stop']"),
             /** @type {jQuery} кнопка сохранения игры */
             $control_save: $("#form_control button[name='save']"),
+            /** @type {jQuery} вывод ширины поля */
+            $span_width: $("#form_status span[name='width']"),
+            /** @type {jQuery} вывод высоты поля */
+            $span_height: $("#form_status span[name='height']"),
+            /** @type {jQuery} вывод емкости поля */
+            $span_capacity: $("#form_status span[name='capacity']"),
             /** @type {jQuery} вывод количества шагов */
             $span_steps: $("#form_status span[name='steps']"),
             /** @type {jQuery} вывод значения активных клеток */
@@ -39,17 +45,6 @@ define("app/main", ["jquery", "app/game", "config"], function($, Game, cfg) {
                  */
                 toPercent: function(value) {
                     return (value * 100).toFixed(1);
-                },
-                /**
-                 * Открыть/закрыть доступ к редактированию параметров и управлению
-                 * @param  {Boolean} isenable true/false
-                 */
-                enableForm: function(isenable) {
-                    Int.$control_algo.prop("disabled", !isenable);
-                    Int.$control_period.prop("disabled", !isenable);
-                    Int.$control_start.prop("disabled", !isenable);
-                    Int.$control_stop.prop("disabled", isenable);
-                    Int.$control_save.prop("disabled", !isenable);
                 },
                 /**
                  * Формирование представления для алгоритма начального состояния
@@ -76,19 +71,45 @@ define("app/main", ["jquery", "app/game", "config"], function($, Game, cfg) {
                         + "value='" + data.period
                         + "'>" + data.name
                     + "</option>";
+                },
+                /**
+                 * Открыть/закрыть доступ к редактированию параметров и управлению
+                 * @param  {Boolean} isenable true/false
+                 */
+                enableForm: function(isenable) {
+                    Int.$control_algo.prop("disabled", !isenable);
+                    Int.$control_period.prop("disabled", !isenable);
+                    Int.$control_start.prop("disabled", !isenable);
+                    Int.$control_stop.prop("disabled", isenable);
+                    Int.$control_save.prop("disabled", !isenable);
+                },
+                /**
+                 * Обновить атрибуты игры
+                 * @param  {Object} attrs атрибуты
+                 */
+                updateInitAttrs: function(attrs) {
+                    Int.$span_width.text(attrs.gmap.width);
+                    Int.$span_height.text(attrs.gmap.height);
+                    Int.$span_capacity.text(attrs.gmap.width * attrs.gmap.height);
+                },
+                /**
+                 * Обновить состояние игры
+                 * @param  {Object} status состояние игры
+                 */
+                updateStatus: function(status) {
+                    Int.$span_steps.text(status.steps_count);
+                    Int.$span_active.text(Int.fn.toPercent(status.active / status.capacity));
+                    Int.$span_cur.text(Int.fn.toPercent(status.lived_cur / status.capacity));
+                    Int.$span_min.text(Int.fn.toPercent(status.lived_min / status.capacity));
+                    Int.$span_max.text(Int.fn.toPercent(status.lived_max / status.capacity));
                 }
             }
         };
 
         /** @type {Game} экземпляр игры */
         var G = new Game(Int.$target, {
-            cb_useStatus: function(status) {
-                Int.$span_steps.text(status.steps_count);
-                Int.$span_active.text(Int.fn.toPercent(status.active / status.capacity));
-                Int.$span_cur.text(Int.fn.toPercent(status.lived_cur / status.capacity));
-                Int.$span_min.text(Int.fn.toPercent(status.lived_min / status.capacity));
-                Int.$span_max.text(Int.fn.toPercent(status.lived_max / status.capacity));
-            }
+            cb_initGame: Int.fn.updateInitAttrs,
+            cb_useStatus: Int.fn.updateStatus
         });
 
         // Формирование списка доступных начальных состояний
@@ -99,7 +120,9 @@ define("app/main", ["jquery", "app/game", "config"], function($, Game, cfg) {
         // Формирование списка доступных режимов скорости
         Int.$control_period.append(cfg.speed.map(function(currentSpeed) {
             return Int.fn.createSpeedMode(currentSpeed);
-        }).join(""))
+        }).join(""));
+
+        // Обработчики событий =================================================
 
         // Выбор исходного состояния и создание новой игры
         Int.$control_algo.change(function(event) {

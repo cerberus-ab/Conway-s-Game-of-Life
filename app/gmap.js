@@ -165,7 +165,7 @@ define("app/gmap", ["jquery"], function($) {
             return state;
         }
 
-        // Инициализация ===================================================
+        // Инициализация =======================================================
         // автоматическое определение размеров
         if (options.height === "auto") {
             options.height = Math.floor(($target.height() -5) / settings.node_size);
@@ -182,7 +182,7 @@ define("app/gmap", ["jquery"], function($) {
 
         // обработка контейнера
         $target.empty().toggleClass(settings.cclass_target, true);
-        var i, j, max;
+        var i, j;
 
         // создание поля
         var html_content = "<table>";
@@ -197,7 +197,8 @@ define("app/gmap", ["jquery"], function($) {
         $map = $target.append(html_content).find("td");
 
         // создание набора узлов
-        for (i = 0, max = $map.length; i != max; i++) {
+        var max = $map.length;
+        for (i = 0; i != max; i++) {
             map.push({
                 active: false,
                 $el: $map.eq(i),
@@ -206,7 +207,7 @@ define("app/gmap", ["jquery"], function($) {
                 nbs: []
             });
         }
-        for (i = 0, max = $map.length; i != max; i++) {
+        for (i = 0; i != max; i++) {
             [
                 map[i - options.width],
                 (i + 1) % options.width != 0 ? map[i - options.width + 1] : undefined,

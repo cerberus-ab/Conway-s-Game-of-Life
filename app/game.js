@@ -54,6 +54,14 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
             /** @type {integer|auto} высота игрового поля */
             height: "auto",
             /**
+             * Функция при инициализации игры
+             * @function
+             * @param  {Object} attrs атрибуты игры
+             */
+            cb_initGame: function(attrs) {
+                // do nothing
+            },
+            /**
              * Функция обработки результатов на итерации
              * @function
              * @param  {Object} status текущее состояние игры
@@ -163,6 +171,12 @@ define("app/game", ["jquery", "app/gmap", "app/basic"], function($, Gmap, Basic)
                 isrun: state.isrun
             }
         }
+
+        // Инициализация =======================================================
+        // вызов колбэка
+        options.cb_initGame({
+            gmap: gmap.fn.getAttrs()
+        });
 
         // Публичные методы ====================================================
         this.fn = {
